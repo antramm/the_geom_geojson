@@ -33,7 +33,7 @@ module TheGeomGeoJSON
         raise "can only handle 1 geometries" if geometries.length > 1
         geometries[0].to_json
       else
-        raise "#the_geom_geojson= expects String or Hash"
+        raise "#geom_geojson= expects String or Hash"
       end
     end
   end
