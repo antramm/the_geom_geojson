@@ -97,7 +97,7 @@ module TheGeomGeoJSON
     
     def geometry=(value)
       @geom_geojson_dirty = true
-      @geom_geojson_change = value.present? ? TheGeomGeoJSON.sanitize_geojson(value.to_json) : nil
+      @geom_geojson_change = TheGeomGeoJSON.sanitize_geojson value.to_json
     end
   end
 end
