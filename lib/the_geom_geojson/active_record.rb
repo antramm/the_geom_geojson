@@ -10,10 +10,11 @@ module TheGeomGeoJSON
             if @geom_geojson_dirty
               raise "can't update geom_geojson without an id" if id.nil?
               model.connection_pool.with_connection do |c|
-                Rails.logger.debug('saving....')
-                c.execute TheGeomGeoJSON::ActiveRecord.sql(model, id, @geom_geojson_change)
+                Rails.logger.debug("saving....'#{@geom_geojson_change}'")
+                c.execute TheGeomGeoJSON::ActiveRecord.geom_sql(model, id, @geom_geojson_change)
               end
               @geom_geojson_dirty = false
+              @geom_geojson_change = ''
               reload
             end
           end
@@ -21,8 +22,8 @@ module TheGeomGeoJSON
       end
 
       # @private
-      def sql(model, id, geom_geojson)
-        sql = (@sql[model.name] ||= begin
+      def geom_sql(model, id, geom_geojson)
+        sql = (begin
           cols = model.column_names
           has_geom = cols.include?('geom'), is_geom_empty = geom_geojson.blank?
           
@@ -42,8 +43,10 @@ module TheGeomGeoJSON
         end)
         if has_geom
           if is_geom_empty
+            Rails.logger.debug " empty.... #{sql}"
             model.send :sanitize_sql_array, [sql, id]
           else
+            Rails.logger.debug " full.... #{sql}"
             model.send :sanitize_sql_array, [sql, geom_geojson, id]
           end
         end
@@ -97,7 +100,7 @@ module TheGeomGeoJSON
     
     def geometry=(value)
       @geom_geojson_dirty = true
-      @geom_geojson_change = TheGeomGeoJSON.sanitize_geojson value.to_json
+      @geom_geojson_change = value.present? ? TheGeomGeoJSON.sanitize_geojson(value.to_json) : nil
     end
   end
 end
